@@ -1,0 +1,13 @@
+{
+  "name": "Custom Forecast Solar",
+  "country": [
+    "DE",
+    "AT",
+    "CH"
+  ],
+  "domains": [
+    "sensor"
+  ],
+  "homeassistant": "2025.1.0",
+  "render_readme": true
+}

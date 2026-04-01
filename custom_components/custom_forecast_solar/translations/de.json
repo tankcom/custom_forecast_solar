@@ -1,0 +1,33 @@
+{
+  "title": "Custom Forecast Solar",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Prognose-Quellen zuordnen",
+        "description": "Aktiviere je Tag eine Quelle und waehl das Datenformat."
+      }
+    },
+    "error": {
+      "required": "Dieses Feld ist erforderlich",
+      "entity_not_found": "Entitaet nicht gefunden",
+      "invalid_format": "Ungueltiges Datenformat",
+      "no_days_configured": "Mindestens ein Tag muss konfiguriert werden"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Prognose-Quellen bearbeiten",
+        "description": "Aktive Tage, Quell-Entitaeten und Formate anpassen."
+      }
+    }
+  },
+  "selector": {
+    "source_format": {
+      "options": {
+        "ml": "Solar-Forecast-ML (hours)",
+        "solcast": "Solcast-artig (detailedForecast)"
+      }
+    }
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "title": "Custom Forecast Solar",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Forecast source mapping",
+        "description": "Enable each day and assign one sensor plus source format."
+      }
+    },
+    "error": {
+      "required": "This field is required",
+      "entity_not_found": "Entity not found",
+      "invalid_format": "Invalid source format",
+      "no_days_configured": "Configure at least one day"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Edit forecast source mapping",
+        "description": "Change enabled days, source entities and formats."
+      }
+    }
+  },
+  "selector": {
+    "source_format": {
+      "options": {
+        "ml": "Solar-Forecast-ML (hours)",
+        "solcast": "Solcast-style (detailedForecast)"
+      }
+    }
+  }
+}
