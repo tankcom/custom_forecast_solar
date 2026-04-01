@@ -45,8 +45,8 @@ class ForecastDay:
         """Return forecast points in HA energy-compatible structure."""
         return [
             {
-                "period_start": point.period_start,
-                "pv_estimate": point.pv_estimate,
+                "period_start": point.period_start.isoformat(),
+                "pv_estimate": round(point.pv_estimate * 1000, 2),  # Convert kWh to Wh
             }
             for point in self.detailed_forecast
         ]

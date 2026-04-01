@@ -152,5 +152,6 @@ class CustomForecastCoordinator(DataUpdateCoordinator[CoordinatorData]):
         for day in sorted(self.data.by_day):
             points.extend(self.data.by_day[day].as_energy_forecast())
 
+        # Sort by ISO string period_start
         points.sort(key=lambda item: item["period_start"])
         return {"forecasts": points}

@@ -55,6 +55,7 @@ class CustomForecastDaySensor(CoordinatorEntity[CustomForecastCoordinator], Sens
         native_unit_of_measurement=UnitOfEnergy.KILO_WATT_HOUR,
         state_class=SensorStateClass.TOTAL,
         suggested_display_precision=2,
+        icon="mdi:solar-power-variant",
     )
 
     def __init__(
@@ -76,12 +77,25 @@ class CustomForecastDaySensor(CoordinatorEntity[CustomForecastCoordinator], Sens
         forecast_day = self.coordinator.get_day(self._day)
         if forecast_day is None:
             return None
-        return round(forecast_day.total_kwh, 4)
+        # Ensure we don't return invalid values
+        value = forecast_day.total_kwh
+        return round(value, 4) if isinstance(value, (int, float)) and value >= 0 else None
 
     @property
     def extra_state_attributes(self) -> dict:
         """Return additional state attributes."""
-        return self.coordinator.get_day_attributes(self._day)
+        attrs = self.coordinator.get_day_attributes(self._day)
+        # Log forecast data for debugging
+        if attrs.get("detailedForecast"):
+            import logging
+            _LOGGER = logging.getLogger(__name__)
+            _LOGGER.debug(
+                "Forecast day %d: total=%.2f kWh, points=%d",
+                self._day,
+                self.native_value or 0,
+                len(attrs.get("detailedForecast", [])),
+            )
+        return attrs
 
     @property
     def device_info(self) -> dict:
