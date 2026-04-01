@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import OrderedDict
 from dataclasses import dataclass
 from datetime import timedelta
 import logging
@@ -143,13 +144,16 @@ class CustomForecastCoordinator(DataUpdateCoordinator[CoordinatorData]):
 
         return attrs
 
-    def get_energy_forecast(self) -> dict[str, Any]:
-        """Return energy dashboard forecast as flat dict {iso_timestamp: watts}."""
+    def get_energy_forecast(self) -> dict[str, Any] | None:
+        """Return energy dashboard compatible dict: {"wh_hours": OrderedDict({iso: Wh})}."""
         if self.data is None:
-            return {}
+            return None
 
-        result: dict[str, Any] = {}
+        wh_hours: dict[str, float] = {}
         for day in sorted(self.data.by_day):
-            result.update(self.data.by_day[day].as_energy_dict())
+            wh_hours.update(self.data.by_day[day].as_wh_hours())
 
-        return result
+        if not wh_hours:
+            return None
+
+        return {"wh_hours": OrderedDict(sorted(wh_hours.items()))}

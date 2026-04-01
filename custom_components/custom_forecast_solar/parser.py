@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import OrderedDict
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
 from typing import Any
@@ -41,13 +42,16 @@ class ForecastDay:
     estimate10: float | None = None
     estimate90: float | None = None
 
-    def as_energy_dict(self) -> dict[str, Any]:
-        """Return forecast as flat dict {iso_timestamp: watts} for HA energy dashboard."""
-        result: dict[str, Any] = {}
+    def as_wh_hours(self) -> dict[str, float]:
+        """Return forecast as {iso_timestamp: Wh} for HA energy dashboard.
+
+        pv_estimate is in kW (average power during the 30-min slot).
+        Wh per 30-min slot = kW * 0.5h * 1000 = kW * 500.
+        """
+        result: dict[str, float] = {}
         for point in self.detailed_forecast:
-            # HA energy expects: key=ISO timestamp, value=power in W
-            # pv_estimate is kW, multiply by 1000 for W
-            result[point.period_start.isoformat()] = round(point.pv_estimate * 1000, 2)
+            if point.pv_estimate > 0:
+                result[point.period_start.isoformat()] = round(point.pv_estimate * 500, 0)
         return result
 
 
