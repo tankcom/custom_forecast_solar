@@ -36,5 +36,4 @@ async def async_setup_services(hass: HomeAssistant) -> None:
         DOMAIN,
         SERVICE_GET_FORECAST_DEBUG,
         handle_get_forecast_debug,
-        description="Get forecast debug data",
     )
