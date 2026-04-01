@@ -41,15 +41,14 @@ class ForecastDay:
     estimate10: float | None = None
     estimate90: float | None = None
 
-    def as_energy_forecast(self) -> list[dict[str, Any]]:
-        """Return forecast points in HA energy-compatible structure."""
-        return [
-            {
-                "period_start": point.period_start.isoformat(),
-                "pv_estimate": round(point.pv_estimate * 1000, 2),  # Convert kWh to Wh
-            }
-            for point in self.detailed_forecast
-        ]
+    def as_energy_dict(self) -> dict[str, Any]:
+        """Return forecast as flat dict {iso_timestamp: watts} for HA energy dashboard."""
+        result: dict[str, Any] = {}
+        for point in self.detailed_forecast:
+            # HA energy expects: key=ISO timestamp, value=power in W
+            # pv_estimate is kW, multiply by 1000 for W
+            result[point.period_start.isoformat()] = round(point.pv_estimate * 1000, 2)
+        return result
 
 
 class ForecastParseError(ValueError):
@@ -94,8 +93,13 @@ class ForecastParser:
             summed_kwh += hour_kwh
 
             start_local = datetime.combine(target_date, time(hour=hour_idx), tzinfo=tz)
-            first_half = hour_kwh / 2
-            second_half = hour_kwh / 2
+
+            # ML hours are kWh produced in that hour.
+            # Average power during that hour = kWh/1h = kW.
+            # We split each hour into two 30-min slots with the same average kW.
+            hour_kw = hour_kwh  # kWh per 1h = kW average
+            first_half = hour_kw
+            second_half = hour_kw
 
             detailed_forecast.append(
                 ForecastPoint(
@@ -117,9 +121,9 @@ class ForecastParser:
             detailed_hourly.append(
                 {
                     "period_start": start_local.isoformat(),
-                    "pv_estimate": round(hour_kwh, 4),
-                    "pv_estimate10": round(hour_kwh, 4),
-                    "pv_estimate90": round(hour_kwh, 4),
+                    "pv_estimate": round(hour_kw, 4),
+                    "pv_estimate10": round(hour_kw, 4),
+                    "pv_estimate90": round(hour_kw, 4),
                 }
             )
 

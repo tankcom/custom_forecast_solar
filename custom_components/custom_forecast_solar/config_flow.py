@@ -43,8 +43,8 @@ def _build_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
                 entity_key,
                 default=defaults.get(entity_key, ""),
             )
-        ] = selector.EntitySelector(
-            selector.EntitySelectorConfig(domain="sensor")
+        ] = selector.TextSelector(
+            selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
         )
         options[
             vol.Optional(

@@ -144,14 +144,12 @@ class CustomForecastCoordinator(DataUpdateCoordinator[CoordinatorData]):
         return attrs
 
     def get_energy_forecast(self) -> dict[str, Any]:
-        """Return energy dashboard forecast payload."""
+        """Return energy dashboard forecast as flat dict {iso_timestamp: watts}."""
         if self.data is None:
-            return {"forecasts": []}
+            return {}
 
-        points: list[dict[str, Any]] = []
+        result: dict[str, Any] = {}
         for day in sorted(self.data.by_day):
-            points.extend(self.data.by_day[day].as_energy_forecast())
+            result.update(self.data.by_day[day].as_energy_dict())
 
-        # Sort by ISO string period_start
-        points.sort(key=lambda item: item["period_start"])
-        return {"forecasts": points}
+        return result

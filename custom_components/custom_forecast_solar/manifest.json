@@ -13,11 +13,6 @@
     "custom_components.custom_forecast_solar"
   ],
   "requirements": [],
-  "version": "0.1.0",
-  "energy": {
-    "providers": {
-      "solar_forecast": "custom_components.custom_forecast_solar.energy:async_get_solar_forecast"
-    }
-  }
+  "version": "0.1.0"
 }
 
