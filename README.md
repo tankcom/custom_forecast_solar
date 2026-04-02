@@ -1,88 +1,88 @@
 # Custom Forecast Solar
 
-Home Assistant HACS Custom Integration, die benutzerdefinierte Prognose-Sensoren auf ein einheitliches Solar-Forecast-Format fuer das Energy Dashboard abbildet.
+Home Assistant HACS custom integration that maps custom forecast sensors to a unified solar forecast format compatible with the Energy Dashboard.
 
 ## Features
 
-- Config Flow in der UI
-- Variable Tage: heute bis +7 (nur aktivierte Tage)
-- Pro Tag frei waehbares Quellformat:
-  - `ml` (Solar-Forecast-ML Stil, `attributes.hours`)
-  - `solcast` (Solcast Stil, `attributes.detailedForecast`)
-- Energy-kompatible Sensorsignale (`device_class: energy`, `state_class: total`, `unit: kWh`)
-- Registrierung als Solar-Forecast-Provider fuer das Energy Dashboard
+- Config Flow in the UI
+- Configurable days: today up to +7 (only enabled days are used)
+- Per-day selectable source format:
+  - `ml` (Solar-Forecast-ML style, `attributes.hours`)
+  - `solcast` (Solcast style, `attributes.detailedForecast`)
+- Energy-compatible sensors (`device_class: energy`, `state_class: total`, `unit: kWh`)
+- Registers as a solar forecast provider for the Energy Dashboard
 
 ## Installation (HACS)
 
-1. Dieses Repository in HACS als Custom Repository (Typ `Integration`) hinzufuegen.
-2. Integration installieren.
-3. Home Assistant neu starten.
-4. Integration `Custom Forecast Solar` ueber UI hinzufuegen.
+1. Add this repository to HACS as a custom repository (type `Integration`).
+2. Install the integration.
+3. Restart Home Assistant.
+4. Add the `Custom Forecast Solar` integration via the UI.
 
-## Konfiguration
+## Configuration
 
-Im Config Flow gibt es pro Tag `0..7` drei Felder:
+The Config Flow exposes three fields per day index `0..7`:
 
-- `enabled`
-- `entity` (Quell-Sensor)
-- `format` (`ml` oder `solcast`)
+- `enabled` — enable this day's mapping
+- `entity` — source sensor entity
+- `format` — `ml` or `solcast`
 
-Beispiel:
+Example:
 
-- Tag 0: `sensor.remoteprognose_heute`, Format `ml`
-- Tag 1: `sensor.remoteprognose_morgen`, Format `ml`
-- Tag 5: `sensor.solcast_pv_forecast_forecast_day_5`, Format `solcast`
+- Day 0: `sensor.remoteprognose_heute`, format `ml`
+- Day 1: `sensor.remoteprognose_morgen`, format `ml`
+- Day 5: `sensor.solcast_pv_forecast_forecast_day_5`, format `solcast`
 
-## Energy Dashboard Integration
+## Energy Dashboard integration
 
-Nach Konfiguration der Integration:
+After configuring the integration:
 
-1. Oeffne die **Einstellungen > Energie**
-2. Unter **Solar**, klicke auf **Solar-Erzeugung oder Verbrauch hinzufuegen**
-3. Waehle die Integration `custom_forecast_solar` aus
-4. Die Integration sollte die konfigurierten Prognosen automatisch bereitstellen
+1. Open Settings → Energy
+2. Under Solar, click Add solar generation or consumption
+3. Select the `custom_forecast_solar` integration
+4. The integration should automatically provide the configured forecasts
 
-Die Integration wird automatisch als Solar-Forecast-Provider fuer alle konfigurierten Tage registriert.
+The integration registers itself as a solar forecast provider for all configured days.
 
-**Hinweis:** Das Energy Dashboard zeigt die Prognose nur an wenn mindestens Tag 0 (heute) konfiguriert ist.
+Note: The Energy Dashboard will only display forecasts when at least day 0 (today) is configured.
 
-## Erwartete Quellen
+## Supported source formats
 
-### Format `ml`
+### `ml` format
 
-- `attributes.hours`: Map `"HH:00" -> kWh`
-- optionaler Tageswert in `state` oder `attributes.raw`
+- `attributes.hours`: mapping of `"HH:00" -> kWh`
+- optional daily value may appear in `state` or `attributes.raw`
 
-### Format `solcast`
+### `solcast` format
 
-- bevorzugt `attributes.detailedForecast` mit Eintraegen:
+- preferred: `attributes.detailedForecast` entries containing:
   - `period_start`
   - `pv_estimate`
   - optional `pv_estimate10`, `pv_estimate90`
-- fallback: `attributes.estimate` oder `state`
+- fallback: `attributes.estimate` or `state`
 
 ## Output
 
-Die Integration erzeugt je aktiviertem Tag einen Energy-Sensor mit:
+For each enabled day the integration creates an energy sensor with:
 
-- Tageswert in kWh
-- `detailedForecast` (ISO-formatiert, Halbstunden-Intervalle)
-- `detailedHourly` (stundliche Aggregation)
+- daily value in kWh
+- `detailedForecast` (ISO-formatted timestamps in half-hour intervals)
+- `detailedHourly` (hourly aggregation)
 
-Diese Sensoren erscheinen im Home Assistant unter `sensor.custom_forecast_solar_forecast_*`.
+These sensors are created under `sensor.custom_forecast_solar_forecast_*` in Home Assistant.
 
 ## Debugging
 
-Wenn das Energy Dashboard die Prognose nicht anzeigt:
+If the Energy Dashboard does not display the forecast:
 
-1. **Logs pruefen**: `logger: custom_components.custom_forecast_solar`
-2. **Debug-Service aufrufen**: `custom_forecast_solar.get_forecast_debug`
-3. **Entitaet validieren**: Sensor `sensor.custom_forecast_solar_forecast_today` sollte existieren
-4. **Quellen validieren**: Die konfigurierten Source-Sensoren muessen existieren und gueltige Daten haben
+1. Check logs: set logger for `custom_components.custom_forecast_solar`
+2. Call the debug service: `custom_forecast_solar.get_forecast_debug`
+3. Validate entities: ensure `sensor.custom_forecast_solar_forecast_today` exists
+4. Validate sources: make sure configured source sensors exist and expose valid data
 
-## Hinweise
+## Notes
 
-- Wenn ein Quellsensor fehlt oder ungueltige Daten liefert, wird der Update-Lauf als fehlgeschlagen markiert.
-- Nach Aenderungen in den Optionen wird die Integration automatisch neu geladen.
-- Die Integration liefert Daten in Wh (Wattstunden) fuer das Energy Dashboard.
+- If a source sensor is missing or provides invalid data, the coordinator update will be marked as failed.
+- Changing options will automatically reload the integration.
+- The integration provides forecast data to the Energy Dashboard in Wh (watt-hours) per half-hour slot.
 

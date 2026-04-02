@@ -21,6 +21,7 @@ MIN_DAY_OFFSET: Final = 0
 MAX_DAY_OFFSET: Final = 7
 
 SCAN_INTERVAL: Final = timedelta(minutes=15)
+ENERGY_HISTORY_DAYS: Final = 14
 
 ATTR_DETAILED_FORECAST: Final = "detailedForecast"
 ATTR_DETAILED_HOURLY: Final = "detailedHourly"
