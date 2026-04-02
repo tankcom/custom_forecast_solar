@@ -14,7 +14,11 @@ from .const import (
     CONF_DAY,
     CONF_DAY_MAPPINGS,
     CONF_ENTITY_ID,
+    CONF_FALLBACK_CONFIG_ENTRY_ID,
+    CONF_FALLBACK_DOMAIN,
+    CONF_FALLBACK_ENABLED,
     CONF_SOURCE_FORMAT,
+    DEFAULT_FALLBACK_DOMAIN,
     DOMAIN,
     FORMAT_ML,
     FORMAT_SOLCAST,
@@ -27,10 +31,51 @@ def _day_key(prefix: str, day: int, field: str) -> str:
     return f"{prefix}_{day}_{field}"
 
 
-def _build_schema(defaults: Mapping[str, Any] | None = None) -> vol.Schema:
+def _build_schema(hass, defaults: Mapping[str, Any] | None = None) -> vol.Schema:
     """Build the form schema for all configurable days."""
     defaults = defaults or {}
     options: dict[vol.Marker, Any] = {}
+
+    fallback_enabled_default = bool(defaults.get(CONF_FALLBACK_ENABLED, False))
+    fallback_domain_default = str(defaults.get(CONF_FALLBACK_DOMAIN, DEFAULT_FALLBACK_DOMAIN))
+
+    options[vol.Optional(CONF_FALLBACK_ENABLED, default=fallback_enabled_default)] = bool
+    options[vol.Optional(CONF_FALLBACK_DOMAIN, default=fallback_domain_default)] = selector.TextSelector(
+        selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
+    )
+
+    domain_entries = [
+        entry
+        for entry in hass.config_entries.async_entries()
+        if entry.domain == fallback_domain_default
+    ]
+    if domain_entries:
+        options[
+            vol.Optional(
+                CONF_FALLBACK_CONFIG_ENTRY_ID,
+                default=str(defaults.get(CONF_FALLBACK_CONFIG_ENTRY_ID, "")),
+            )
+        ] = selector.SelectSelector(
+            selector.SelectSelectorConfig(
+                options=[
+                    {
+                        "value": entry.entry_id,
+                        "label": entry.title or entry.entry_id,
+                    }
+                    for entry in domain_entries
+                ],
+                mode=selector.SelectSelectorMode.DROPDOWN,
+            )
+        )
+    else:
+        options[
+            vol.Optional(
+                CONF_FALLBACK_CONFIG_ENTRY_ID,
+                default=str(defaults.get(CONF_FALLBACK_CONFIG_ENTRY_ID, "")),
+            )
+        ] = selector.TextSelector(
+            selector.TextSelectorConfig(type=selector.TextSelectorType.TEXT)
+        )
 
     for day in range(MIN_DAY_OFFSET, MAX_DAY_OFFSET + 1):
         enabled_key = _day_key("day", day, "enabled")
@@ -108,6 +153,36 @@ def _extract_day_mappings(
     return day_mappings, errors
 
 
+def _extract_fallback_settings(
+    hass,
+    user_input: Mapping[str, Any],
+) -> tuple[dict[str, Any], dict[str, str]]:
+    """Validate fallback integration settings and return normalized data."""
+    errors: dict[str, str] = {}
+
+    fallback_enabled = bool(user_input.get(CONF_FALLBACK_ENABLED, False))
+    fallback_domain = str(user_input.get(CONF_FALLBACK_DOMAIN, DEFAULT_FALLBACK_DOMAIN)).strip()
+    fallback_entry_id = str(user_input.get(CONF_FALLBACK_CONFIG_ENTRY_ID, "")).strip()
+
+    if fallback_enabled:
+        if not fallback_domain:
+            errors[CONF_FALLBACK_DOMAIN] = "required"
+        if not fallback_entry_id:
+            errors[CONF_FALLBACK_CONFIG_ENTRY_ID] = "required"
+        else:
+            entry = hass.config_entries.async_get_entry(fallback_entry_id)
+            if entry is None:
+                errors[CONF_FALLBACK_CONFIG_ENTRY_ID] = "entry_not_found"
+            elif fallback_domain and entry.domain != fallback_domain:
+                errors[CONF_FALLBACK_CONFIG_ENTRY_ID] = "entry_domain_mismatch"
+
+    return {
+        CONF_FALLBACK_ENABLED: fallback_enabled,
+        CONF_FALLBACK_DOMAIN: fallback_domain,
+        CONF_FALLBACK_CONFIG_ENTRY_ID: fallback_entry_id,
+    }, errors
+
+
 def _inflate_defaults(day_mappings: list[dict[str, Any]]) -> dict[str, Any]:
     """Convert persisted day mappings to form defaults."""
     defaults: dict[str, Any] = {}
@@ -130,15 +205,17 @@ class CustomForecastSolarConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         if user_input is not None:
             day_mappings, errors = _extract_day_mappings(self.hass, user_input)
+            fallback, fallback_errors = _extract_fallback_settings(self.hass, user_input)
+            errors.update(fallback_errors)
             if not errors:
                 return self.async_create_entry(
                     title="Custom Forecast Solar",
-                    data={CONF_DAY_MAPPINGS: day_mappings},
+                    data={CONF_DAY_MAPPINGS: day_mappings} | fallback,
                 )
 
         return self.async_show_form(
             step_id="user",
-            data_schema=_build_schema(user_input),
+            data_schema=_build_schema(self.hass, user_input),
             errors=errors,
         )
 
@@ -160,10 +237,12 @@ class CustomForecastSolarOptionsFlow(config_entries.OptionsFlow):
 
         if user_input is not None:
             day_mappings, errors = _extract_day_mappings(self.hass, user_input)
+            fallback, fallback_errors = _extract_fallback_settings(self.hass, user_input)
+            errors.update(fallback_errors)
             if not errors:
                 return self.async_create_entry(
                     title="",
-                    data={CONF_DAY_MAPPINGS: day_mappings},
+                    data={CONF_DAY_MAPPINGS: day_mappings} | fallback,
                 )
 
         existing = self._config_entry.options.get(
@@ -171,9 +250,21 @@ class CustomForecastSolarOptionsFlow(config_entries.OptionsFlow):
             self._config_entry.data.get(CONF_DAY_MAPPINGS, []),
         )
         defaults = _inflate_defaults(existing)
+        defaults[CONF_FALLBACK_ENABLED] = self._config_entry.options.get(
+            CONF_FALLBACK_ENABLED,
+            self._config_entry.data.get(CONF_FALLBACK_ENABLED, False),
+        )
+        defaults[CONF_FALLBACK_DOMAIN] = self._config_entry.options.get(
+            CONF_FALLBACK_DOMAIN,
+            self._config_entry.data.get(CONF_FALLBACK_DOMAIN, DEFAULT_FALLBACK_DOMAIN),
+        )
+        defaults[CONF_FALLBACK_CONFIG_ENTRY_ID] = self._config_entry.options.get(
+            CONF_FALLBACK_CONFIG_ENTRY_ID,
+            self._config_entry.data.get(CONF_FALLBACK_CONFIG_ENTRY_ID, ""),
+        )
 
         return self.async_show_form(
             step_id="init",
-            data_schema=_build_schema(defaults),
+            data_schema=_build_schema(self.hass, defaults),
             errors=errors,
         )

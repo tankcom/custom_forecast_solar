@@ -4,21 +4,33 @@
     "step": {
       "user": {
         "title": "Forecast source mapping",
-        "description": "Enable each day and assign one sensor plus source format."
+        "description": "Enable each day and assign one sensor plus source format. Optionally configure a fallback integration for missing historical forecast slots.",
+        "data": {
+          "fallback_enabled": "Enable fallback integration for past gaps",
+          "fallback_domain": "Fallback integration domain",
+          "fallback_config_entry_id": "Fallback integration config entry"
+        }
       }
     },
     "error": {
       "required": "This field is required",
       "entity_not_found": "Entity not found",
       "invalid_format": "Invalid source format",
-      "no_days_configured": "Configure at least one day"
+      "no_days_configured": "Configure at least one day",
+      "entry_not_found": "Config entry not found",
+      "entry_domain_mismatch": "Selected config entry does not match fallback domain"
     }
   },
   "options": {
     "step": {
       "init": {
         "title": "Edit forecast source mapping",
-        "description": "Change enabled days, source entities and formats."
+        "description": "Change enabled days, source entities, formats, and optional fallback integration.",
+        "data": {
+          "fallback_enabled": "Enable fallback integration for past gaps",
+          "fallback_domain": "Fallback integration domain",
+          "fallback_config_entry_id": "Fallback integration config entry"
+        }
       }
     }
   },

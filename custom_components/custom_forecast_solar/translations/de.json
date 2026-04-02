@@ -4,21 +4,33 @@
     "step": {
       "user": {
         "title": "Prognose-Quellen zuordnen",
-        "description": "Aktiviere je Tag eine Quelle und waehl das Datenformat."
+        "description": "Aktiviere je Tag eine Quelle und waehl das Datenformat. Optional kannst du eine Fallback-Integration fuer fehlende Vergangenheits-Slots konfigurieren.",
+        "data": {
+          "fallback_enabled": "Fallback-Integration fuer Vergangenheitsluecken aktivieren",
+          "fallback_domain": "Domain der Fallback-Integration",
+          "fallback_config_entry_id": "Config-Entry der Fallback-Integration"
+        }
       }
     },
     "error": {
       "required": "Dieses Feld ist erforderlich",
       "entity_not_found": "Entitaet nicht gefunden",
       "invalid_format": "Ungueltiges Datenformat",
-      "no_days_configured": "Mindestens ein Tag muss konfiguriert werden"
+      "no_days_configured": "Mindestens ein Tag muss konfiguriert werden",
+      "entry_not_found": "Config-Entry nicht gefunden",
+      "entry_domain_mismatch": "Der ausgewaehlte Config-Entry passt nicht zur Fallback-Domain"
     }
   },
   "options": {
     "step": {
       "init": {
         "title": "Prognose-Quellen bearbeiten",
-        "description": "Aktive Tage, Quell-Entitaeten und Formate anpassen."
+        "description": "Aktive Tage, Quell-Entitaeten, Formate und optionale Fallback-Integration anpassen.",
+        "data": {
+          "fallback_enabled": "Fallback-Integration fuer Vergangenheitsluecken aktivieren",
+          "fallback_domain": "Domain der Fallback-Integration",
+          "fallback_config_entry_id": "Config-Entry der Fallback-Integration"
+        }
       }
     }
   },

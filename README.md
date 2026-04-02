@@ -9,6 +9,7 @@ Home Assistant HACS custom integration that maps custom forecast sensors to a un
 - Per-day selectable source format:
   - `ml` (Solar-Forecast-ML style, `attributes.hours`)
   - `solcast` (Solcast style, `attributes.detailedForecast`)
+- Optional fallback integration for historical gaps (for example `solcast_solar`)
 - Energy-compatible sensors (`device_class: energy`, `state_class: total`, `unit: kWh`)
 - Registers as a solar forecast provider for the Energy Dashboard
 
@@ -27,6 +28,12 @@ The Config Flow exposes three fields per day index `0..7`:
 - `entity` — source sensor entity
 - `format` — `ml` or `solcast`
 
+Optional fallback settings:
+
+- `fallback_enabled` — enables backfilling of missing past slots
+- `fallback_domain` — integration domain (for example `solcast_solar`)
+- `fallback_config_entry_id` — selected config entry from that integration
+
 Example:
 
 - Day 0: `sensor.remoteprognose_heute`, format `ml`
@@ -43,6 +50,8 @@ After configuring the integration:
 4. The integration should automatically provide the configured forecasts
 
 The integration registers itself as a solar forecast provider for all configured days.
+
+If enabled, missing past `wh_hours` slots are backfilled from the configured fallback integration. Current and future slots from this integration are kept as primary.
 
 Note: The Energy Dashboard will only display forecasts when at least day 0 (today) is configured.
 
