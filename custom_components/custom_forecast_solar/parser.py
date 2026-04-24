@@ -200,7 +200,7 @@ class ForecastParser:
                 )
             ]
         else:
-            total_kwh = round(sum(point.pv_estimate for point in detailed_forecast), 4)
+            total_kwh = round(sum(point.pv_estimate * 0.5 for point in detailed_forecast), 4)
 
         hourly_bucket: dict[datetime, dict[str, float]] = {}
         for point in detailed_forecast:
@@ -210,9 +210,9 @@ class ForecastParser:
                 hour_start,
                 {"pv_estimate": 0.0, "pv_estimate10": 0.0, "pv_estimate90": 0.0},
             )
-            bucket["pv_estimate"] += point.pv_estimate
-            bucket["pv_estimate10"] += point.pv_estimate10
-            bucket["pv_estimate90"] += point.pv_estimate90
+            bucket["pv_estimate"] += point.pv_estimate * 0.5
+            bucket["pv_estimate10"] += point.pv_estimate10 * 0.5
+            bucket["pv_estimate90"] += point.pv_estimate90 * 0.5
 
         detailed_hourly = [
             {
