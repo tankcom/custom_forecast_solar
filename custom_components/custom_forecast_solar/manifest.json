@@ -2,13 +2,13 @@
   "domain": "custom_forecast_solar",
   "name": "Custom Forecast Solar",
   "codeowners": [
-    "@schre"
+    "@tankcom"
   ],
   "config_flow": true,
-  "documentation": "https://github.com/schre/custom_forecast_solar",
+  "documentation": "https://github.com/tankcom/custom_forecast_solar",
   "integration_type": "service",
   "iot_class": "local_polling",
-  "issue_tracker": "https://github.com/schre/custom_forecast_solar/issues",
+  "issue_tracker": "https://github.com/tankcom/custom_forecast_solar/issues",
   "loggers": [
     "custom_components.custom_forecast_solar"
   ],
